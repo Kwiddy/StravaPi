@@ -153,16 +153,8 @@ def format_activity_data(activity):
             # Convert to datetime and format
             date_obj = datetime.fromisoformat(date_str)
             formatted_date = date_obj.strftime('%Y-%m-%d %H:%M:%S')
-            # Format for display: "Tuesday 6th Jan"
-            day_name = date_obj.strftime('%A')
-            day_num = date_obj.day
-            month_name = date_obj.strftime('%b')
-            # Add ordinal suffix
-            if 10 <= day_num % 100 <= 20:
-                suffix = 'th'
-            else:
-                suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day_num % 10, 'th')
-            formatted_date_display = f"{day_name} {day_num}{suffix} {month_name}"
+            # Format for display: "DD-MM-YYYY HH:MM"
+            formatted_date_display = date_obj.strftime('%d-%m-%Y %H:%M')
         except:
             # If parsing fails, just use the original string
             formatted_date = start_date

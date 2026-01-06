@@ -353,7 +353,7 @@ function App() {
                     <th>Duration</th>
                     <th>Pace</th>
                     {selectedActivityType === 'Run' && <th>Elevation</th>}
-                    <th>Heart Rate</th>
+                    <th>Avg Heart Rate</th>
                   </tr>
                 </thead>
                 <tbody>
