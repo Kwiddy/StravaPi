@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+const API_URL = 'http://localhost:5489/api/runs';
+
 function App() {
   const [runs, setRuns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -8,22 +10,37 @@ function App() {
 
   useEffect(() => {
     fetchRuns();
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(fetchRuns, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchRuns = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/runs');
+      setError(null);
+      
+      const response = await fetch(API_URL, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       
-      if (response.ok) {
-        setRuns(data.runs || []);
-        setError(null);
+      if (data.error) {
+        setError(data.error);
       } else {
-        setError(data.error || 'Failed to fetch runs');
+        setRuns(data.runs || []);
       }
     } catch (err) {
-      setError('Failed to connect to backend. Make sure the API server is running on port 5000.');
+      console.error('Error fetching runs:', err);
+      setError(`Failed to connect to backend: ${err.message}. Make sure the API server is running on port 5489.`);
     } finally {
       setLoading(false);
     }
@@ -38,11 +55,16 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>Strava Dashboard</h1>
-        <p>Your Latest Runs</p>
+        <p>Your Latest 3 Runs</p>
+        <button onClick={fetchRuns} className="refresh-btn" disabled={loading}>
+          {loading ? 'Loading...' : 'Refresh'}
+        </button>
       </header>
       
       <main className="App-main">
-        {loading && <div className="loading">Loading runs...</div>}
+        {loading && runs.length === 0 && (
+          <div className="loading">Loading runs...</div>
+        )}
         
         {error && (
           <div className="error">
@@ -106,4 +128,3 @@ function App() {
 }
 
 export default App;
-

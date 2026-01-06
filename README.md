@@ -59,12 +59,12 @@ cd backend
 python api.py
 ```
 
-The API server will run on `http://localhost:5000`.
+The API server will run on `http://localhost:5489`.
 
-**Note:** You can also run the CLI script directly:
+**Note:** You can also run the CLI script directly to view runs in the terminal:
 ```bash
 cd backend
-python api.py #strava_runs.py
+python strava_runs.py
 ```
 
 ### Frontend

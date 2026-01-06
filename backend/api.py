@@ -4,23 +4,28 @@ Flask API server for Strava Dashboard.
 Serves the latest runs data to the frontend.
 """
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from strava_runs import get_access_token, get_activities, filter_runs, format_duration, format_distance
 from datetime import datetime
 
 app = Flask(__name__)
 
-# Try to use flask-cors if available, otherwise use manual headers
-try:
-    from flask_cors import CORS
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
-except ImportError:
-    # Fallback: Add CORS headers manually
-    @app.after_request
-    def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+# Simple CORS handler - ONE place only
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
+
+# Handle OPTIONS preflight
+@app.before_request
+def handle_options():
+    if request.method == 'OPTIONS':
+        response = jsonify({})
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
 
 
@@ -99,5 +104,6 @@ def health_check():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
-
+    print("Starting Strava Dashboard API server on http://localhost:5489")
+    print("CORS enabled for all origins")
+    app.run(debug=True, port=5489, host='0.0.0.0')
