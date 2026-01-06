@@ -77,6 +77,8 @@ npm start
 
 The app will open in your browser at `http://localhost:3000` and will display all runs and swims from the start of the current year.
 
+**Note:** Activities are cached locally in `backend/activities.json` for fast loading. Click the refresh button to fetch new activities from Strava.
+
 ## Environment Variables
 
 The backend requires a `.env` file in the `backend` directory with:
@@ -86,4 +88,15 @@ The backend requires a `.env` file in the `backend` directory with:
 - `STRAVA_REFRESH_TOKEN` - Your Strava refresh token
 
 These are automatically set up when you run `setup_tokens.py`.
+
+## Caching System
+
+The application uses a local caching system optimized for Raspberry Pi:
+
+- **Fast Loading**: Activities are stored in `backend/activities.json` and load instantly on app startup
+- **Efficient Updates**: Click the refresh button to fetch only new activities from Strava API
+- **Smart Fetching**: Stops fetching once it encounters activities already in cache
+- **Offline Support**: App works offline, showing cached data even without internet connection
+
+The cache file is automatically created on first refresh and updated whenever you click the refresh button.
 

@@ -90,7 +90,20 @@ body {
   transition: transform 0.3s;
 }
 
-.refresh-btn:not(:disabled):hover .refresh-icon {
+.refresh-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.refresh-btn:not(:disabled):hover .refresh-icon:not(.spinning) {
   transform: rotate(180deg);
 }
 

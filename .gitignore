@@ -3,6 +3,10 @@
 .env.local
 .env.*.local
 
+# Activity cache
+backend/activities.json
+backend/activities.json.tmp
+
 # Python
 __pycache__/
 *.py[cod]
