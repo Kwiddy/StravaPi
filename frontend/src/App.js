@@ -183,24 +183,26 @@ function App() {
                       <div className="stat-value">{statistics.avg_weekly_run_distance_km.toFixed(1)} km</div>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={180}>
-                    <LineChart data={statistics.weekly_run_data || []}>
-                      <XAxis dataKey="week" stroke="#888" fontSize={12} />
-                      <YAxis stroke="#888" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px' }}
-                        labelStyle={{ color: '#e0e0e0' }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="distance" 
-                        stroke="#fc5200" 
-                        strokeWidth={3} 
-                        dot={{ fill: '#fc5200', r: 4 }} 
-                        activeDot={{ r: 6 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <div className="chart-container">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={statistics.weekly_run_data || []}>
+                        <XAxis dataKey="week" stroke="#888" fontSize={12} />
+                        <YAxis stroke="#888" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px' }}
+                          labelStyle={{ color: '#e0e0e0' }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="distance" 
+                          stroke="#fc5200" 
+                          strokeWidth={3} 
+                          dot={{ fill: '#fc5200', r: 4 }} 
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </div>
@@ -220,32 +222,37 @@ function App() {
                       <div className="stat-value">{statistics.avg_weekly_swim_distance_m.toFixed(0)} m</div>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={180}>
-                    <LineChart data={(statistics.weekly_swim_data || []).map(d => ({ ...d, distance: d.distance / 1000 }))}>
-                      <XAxis dataKey="week" stroke="#888" fontSize={12} />
-                      <YAxis stroke="#888" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px' }}
-                        labelStyle={{ color: '#e0e0e0' }}
-                        formatter={(value) => `${(value * 1000).toFixed(0)} m`}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="distance" 
-                        stroke="#00a8cc" 
-                        strokeWidth={3} 
-                        dot={{ fill: '#00a8cc', r: 4 }} 
-                        activeDot={{ r: 6 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <div className="chart-container">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={(statistics.weekly_swim_data || []).map(d => ({ ...d, distance: d.distance / 1000 }))}>
+                        <XAxis dataKey="week" stroke="#888" fontSize={12} />
+                        <YAxis stroke="#888" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px' }}
+                          labelStyle={{ color: '#e0e0e0' }}
+                          formatter={(value) => `${(value * 1000).toFixed(0)} m`}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="distance" 
+                          stroke="#00a8cc" 
+                          strokeWidth={3} 
+                          dot={{ fill: '#00a8cc', r: 4 }} 
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
 
-                <div className="stat-tile" onClick={() => handleActivityClick('Swim')}>
+                <div className="stat-tile stat-tile-half" onClick={() => handleActivityClick('Swim')}>
                   <h3>Swims Completed</h3>
                   <div className="stat-value">{statistics.num_swims} / 84</div>
+                  <div className={`schedule-indicator ${statistics.schedule_status}`}>
+                    {statistics.schedule_status === 'ahead' ? '✓' : '⚠'} {Math.abs(statistics.swims_ahead).toFixed(1)} {statistics.schedule_status === 'ahead' ? 'ahead' : 'behind'} schedule
+                  </div>
                   <div className="circular-progress">
-                    <ResponsiveContainer width="100%" height={180}>
+                    <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
                           data={[

@@ -441,6 +441,13 @@ def calculate_statistics():
     num_swims = len(swims)
     swim_percentage = min((num_swims / 84) * 100, 100) if 84 > 0 else 0
     
+    # Calculate if ahead or behind schedule
+    # Target: 84 swims over 52 weeks = ~1.615 swims per week
+    target_swims_by_now = (weeks_elapsed / 52) * 84
+    swims_ahead = num_swims - target_swims_by_now
+    is_ahead = swims_ahead >= 0
+    schedule_status = 'ahead' if is_ahead else 'behind'
+    
     return {
         'total_run_distance_km': round(total_run_distance / 1000, 2),
         'total_swim_distance_m': round(total_swim_distance, 0),
@@ -451,7 +458,10 @@ def calculate_statistics():
         'num_runs': len(runs),
         'weeks_elapsed': round(weeks_elapsed, 1),
         'weekly_run_data': weekly_run_data,
-        'weekly_swim_data': weekly_swim_data
+        'weekly_swim_data': weekly_swim_data,
+        'swims_ahead': round(swims_ahead, 1),
+        'schedule_status': schedule_status,
+        'target_swims_by_now': round(target_swims_by_now, 1)
     }
 
 
