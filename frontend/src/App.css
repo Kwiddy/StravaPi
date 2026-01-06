@@ -154,17 +154,10 @@ body {
   flex-shrink: 0;
 }
 
-.runs-column .column-title {
-  border-bottom-color: #fc5200;
-}
-
-.swims-column .column-title {
-  border-bottom-color: #00a8cc;
-}
 
 .statistics-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 15px;
   flex: 1;
   min-height: 0;
@@ -172,8 +165,8 @@ body {
   align-content: start;
 }
 
-.swims-column .statistics-grid {
-  grid-template-columns: 1fr 1fr;
+.runs-column .stat-tile:not(.stat-tile-half) {
+  grid-column: span 2;
 }
 
 .swims-column .stat-tile:not(.stat-tile-half) {
@@ -268,6 +261,38 @@ body {
   background-color: rgba(255, 100, 0, 0.2);
   color: #ff8c42;
   border: 1px solid rgba(255, 100, 0, 0.3);
+}
+
+.marathon-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex: 1;
+  justify-content: center;
+}
+
+.marathon-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.marathon-item:last-child {
+  border-bottom: none;
+}
+
+.marathon-label {
+  font-size: 0.9rem;
+  color: #888;
+  font-weight: 500;
+}
+
+.marathon-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fc5200;
 }
 
 .circular-progress {

@@ -448,6 +448,15 @@ def calculate_statistics():
     is_ahead = swims_ahead >= 0
     schedule_status = 'ahead' if is_ahead else 'behind'
     
+    # Running distance percentage (1500km = 100%)
+    run_distance_km = total_run_distance / 1000
+    run_distance_percentage = min((run_distance_km / 1500) * 100, 100) if 1500 > 0 else 0
+    
+    # Marathon statistics
+    half_marathons = len([r for r in runs if 21.1 <= (r.get('distance_meters', 0) / 1000) < 42.2])
+    full_marathons = len([r for r in runs if 42.2 <= (r.get('distance_meters', 0) / 1000) < 50.0])
+    ultra_marathons = len([r for r in runs if (r.get('distance_meters', 0) / 1000) >= 50.0])
+    
     return {
         'total_run_distance_km': round(total_run_distance / 1000, 2),
         'total_swim_distance_m': round(total_swim_distance, 0),
@@ -461,7 +470,11 @@ def calculate_statistics():
         'weekly_swim_data': weekly_swim_data,
         'swims_ahead': round(swims_ahead, 1),
         'schedule_status': schedule_status,
-        'target_swims_by_now': round(target_swims_by_now, 1)
+        'target_swims_by_now': round(target_swims_by_now, 1),
+        'run_distance_percentage': round(run_distance_percentage, 1),
+        'half_marathons': half_marathons,
+        'full_marathons': full_marathons,
+        'ultra_marathons': ultra_marathons
     }
 
 

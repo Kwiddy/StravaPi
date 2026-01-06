@@ -169,7 +169,6 @@ function App() {
         {!loading && !error && statistics && (
           <div className="dashboard-split">
             <div className="dashboard-column runs-column">
-              <h2 className="column-title">Running</h2>
               <div className="statistics-grid">
                 <div className="stat-tile" onClick={() => handleActivityClick('Run')}>
                   <h3>Running Statistics</h3>
@@ -204,11 +203,58 @@ function App() {
                     </ResponsiveContainer>
                   </div>
                 </div>
+
+                <div className="stat-tile stat-tile-half" onClick={() => handleActivityClick('Run')}>
+                  <h3>Distance Goal</h3>
+                  <div className="stat-value">{statistics.total_run_distance_km.toLocaleString()} / 1500 km</div>
+                  <div className="circular-progress">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Completed', value: statistics.run_distance_percentage },
+                            { name: 'Remaining', value: 100 - statistics.run_distance_percentage }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={70}
+                          startAngle={90}
+                          endAngle={-270}
+                          dataKey="value"
+                        >
+                          <Cell fill="#fc5200" />
+                          <Cell fill="#2a2a2a" />
+                        </Pie>
+                        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="progress-text">
+                          {statistics.run_distance_percentage.toFixed(0)}%
+                        </text>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div className="stat-tile stat-tile-half" onClick={() => handleActivityClick('Run')}>
+                  <h3>Marathon Statistics</h3>
+                  <div className="marathon-stats">
+                    <div className="marathon-item">
+                      <div className="marathon-label">Half Marathons</div>
+                      <div className="marathon-value">{statistics.half_marathons || 0}</div>
+                    </div>
+                    <div className="marathon-item">
+                      <div className="marathon-label">Full Marathons</div>
+                      <div className="marathon-value">{statistics.full_marathons || 0}</div>
+                    </div>
+                    <div className="marathon-item">
+                      <div className="marathon-label">Ultra Marathons</div>
+                      <div className="marathon-value">{statistics.ultra_marathons || 0}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="dashboard-column swims-column">
-              <h2 className="column-title">Swimming</h2>
               <div className="statistics-grid">
                 <div className="stat-tile" onClick={() => handleActivityClick('Swim')}>
                   <h3>Swimming Statistics</h3>
