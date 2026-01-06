@@ -58,11 +58,26 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Strava Dashboard</h1>
-        <p>Runs & Swims - {new Date().getFullYear()}</p>
-        <button onClick={fetchActivities} className="refresh-btn" disabled={loading}>
-          {loading ? 'Loading...' : 'Refresh'}
-        </button>
+        <div className="header-content">
+          <div className="logo-section">
+            <svg className="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div className="logo-text">
+              <h1>Strava Dashboard</h1>
+              <p>Runs & Swims - {new Date().getFullYear()}</p>
+            </div>
+          </div>
+          <button onClick={fetchActivities} className="refresh-btn" disabled={loading} title="Refresh">
+            <svg className="refresh-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4V10H7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M23 20V14H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14L18.36 18.36A9 9 0 0 1 3.51 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
       </header>
       
       <main className="App-main">
