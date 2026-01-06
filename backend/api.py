@@ -354,10 +354,6 @@ def calculate_statistics():
     days_elapsed = (now - year_start).days
     weeks_elapsed = max(days_elapsed / 7, 1)  # At least 1 week
     
-    # Average weekly distances
-    avg_weekly_run = total_run_distance / weeks_elapsed if weeks_elapsed > 0 else 0
-    avg_weekly_swim = total_swim_distance / weeks_elapsed if weeks_elapsed > 0 else 0
-    
     # Calculate weekly breakdown for line charts
     def get_week_number(date_str):
         """Get week number from date string using ISO week calculation."""
@@ -408,6 +404,11 @@ def calculate_statistics():
             weekly_swims[week] = 0
         weekly_swims[week] += swim.get('distance_meters', 0)  # Keep in meters
     
+    # Calculate average weekly distances based on all weeks elapsed in the year
+    # This gives a true weekly average over the entire year so far
+    avg_weekly_run = (total_run_distance / 1000) / weeks_elapsed if weeks_elapsed > 0 else 0
+    avg_weekly_swim = total_swim_distance / weeks_elapsed if weeks_elapsed > 0 else 0
+    
     # Create weekly data arrays (last 12 weeks or all weeks if less)
     max_week = int(weeks_elapsed)
     weeks_to_show = min(12, max_week + 1)  # +1 because week 0 exists
@@ -452,6 +453,12 @@ def calculate_statistics():
     run_distance_km = total_run_distance / 1000
     run_distance_percentage = min((run_distance_km / 1500) * 100, 100) if 1500 > 0 else 0
     
+    # Calculate if ahead or behind schedule for running distance (1500km over 52 weeks)
+    target_distance_by_now = (weeks_elapsed / 52) * 1500
+    distance_ahead = run_distance_km - target_distance_by_now
+    is_ahead_distance = distance_ahead >= 0
+    distance_schedule_status = 'ahead' if is_ahead_distance else 'behind'
+    
     # Marathon statistics
     half_marathons = len([r for r in runs if 21.1 <= (r.get('distance_meters', 0) / 1000) < 42.2])
     full_marathons = len([r for r in runs if 42.2 <= (r.get('distance_meters', 0) / 1000) < 50.0])
@@ -460,7 +467,7 @@ def calculate_statistics():
     return {
         'total_run_distance_km': round(total_run_distance / 1000, 2),
         'total_swim_distance_m': round(total_swim_distance, 0),
-        'avg_weekly_run_distance_km': round(avg_weekly_run / 1000, 2),
+        'avg_weekly_run_distance_km': round(avg_weekly_run, 2),
         'avg_weekly_swim_distance_m': round(avg_weekly_swim, 0),
         'num_swims': num_swims,
         'swim_percentage': round(swim_percentage, 1),
@@ -472,6 +479,8 @@ def calculate_statistics():
         'schedule_status': schedule_status,
         'target_swims_by_now': round(target_swims_by_now, 1),
         'run_distance_percentage': round(run_distance_percentage, 1),
+        'distance_ahead': round(distance_ahead, 1),
+        'distance_schedule_status': distance_schedule_status,
         'half_marathons': half_marathons,
         'full_marathons': full_marathons,
         'ultra_marathons': ultra_marathons

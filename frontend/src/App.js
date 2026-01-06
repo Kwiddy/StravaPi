@@ -175,11 +175,11 @@ function App() {
                   <div className="stat-values-row">
                     <div className="stat-value-item">
                       <div className="stat-label-small">Total Distance</div>
-                      <div className="stat-value">{statistics.total_run_distance_km.toLocaleString()} km</div>
+                      <div className="stat-value">{statistics.total_run_distance_km.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} km</div>
                     </div>
                     <div className="stat-value-item">
                       <div className="stat-label-small">Avg Weekly</div>
-                      <div className="stat-value">{statistics.avg_weekly_run_distance_km.toFixed(1)} km</div>
+                      <div className="stat-value">{statistics.avg_weekly_run_distance_km.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} km</div>
                     </div>
                   </div>
                   <div className="chart-container">
@@ -206,7 +206,10 @@ function App() {
 
                 <div className="stat-tile stat-tile-half" onClick={() => handleActivityClick('Run')}>
                   <h3>Distance Goal</h3>
-                  <div className="stat-value">{statistics.total_run_distance_km.toLocaleString()} / 1500 km</div>
+                  <div className="stat-value">{statistics.total_run_distance_km.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / 1500 km</div>
+                  <div className={`schedule-indicator ${statistics.distance_schedule_status}`}>
+                    {statistics.distance_schedule_status === 'ahead' ? '✓' : '⚠'} {Math.abs(statistics.distance_ahead).toFixed(1)} km {statistics.distance_schedule_status === 'ahead' ? 'ahead' : 'behind'} schedule
+                  </div>
                   <div className="circular-progress">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -261,11 +264,11 @@ function App() {
                   <div className="stat-values-row">
                     <div className="stat-value-item">
                       <div className="stat-label-small">Total Distance</div>
-                      <div className="stat-value">{statistics.total_swim_distance_m.toLocaleString()} m</div>
+                      <div className="stat-value">{statistics.total_swim_distance_m.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} m</div>
                     </div>
                     <div className="stat-value-item">
                       <div className="stat-label-small">Avg Weekly</div>
-                      <div className="stat-value">{statistics.avg_weekly_swim_distance_m.toFixed(0)} m</div>
+                      <div className="stat-value">{statistics.avg_weekly_swim_distance_m.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} m</div>
                     </div>
                   </div>
                   <div className="chart-container">
