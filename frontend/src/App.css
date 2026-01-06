@@ -124,13 +124,66 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
+.swim-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-top: 4px solid #00a8cc;
+}
+
+.swim-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #fc5200;
+}
+
 .run-card h2 {
-  margin: 0 0 24px 0;
+  margin: 0;
   color: #fc5200;
   font-size: 1.5rem;
   font-weight: 700;
-  border-bottom: 2px solid #fc5200;
-  padding-bottom: 12px;
+  flex: 1;
+}
+
+.swim-card .activity-header {
+  border-bottom-color: #00a8cc;
+}
+
+.swim-card h2 {
+  color: #00a8cc;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.activity-type {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.run-badge {
+  background-color: #fc5200;
+  color: white;
+}
+
+.swim-badge {
+  background-color: #00a8cc;
+  color: white;
 }
 
 .run-details {

@@ -75,7 +75,7 @@ cd frontend
 npm start
 ```
 
-The app will open in your browser at `http://localhost:3000` and will fetch the latest 3 runs from the backend API.
+The app will open in your browser at `http://localhost:3000` and will display all runs and swims from the start of the current year.
 
 ## Environment Variables
 
