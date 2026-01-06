@@ -10,7 +10,7 @@ import tempfile
 import shutil
 from flask import Flask, jsonify, request
 from strava_runs import get_access_token, get_activities as fetch_strava_activities, format_duration, format_distance
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -145,6 +145,7 @@ def format_activity_data(activity):
     # Format date - simple approach, just clean up the ISO format
     start_date = activity.get('start_date_local', '') or activity.get('start_date', '')
     formatted_date = start_date
+    formatted_date_display = start_date  # For display in tables
     if start_date:
         try:
             # Remove timezone info and format nicely
@@ -152,9 +153,20 @@ def format_activity_data(activity):
             # Convert to datetime and format
             date_obj = datetime.fromisoformat(date_str)
             formatted_date = date_obj.strftime('%Y-%m-%d %H:%M:%S')
+            # Format for display: "Tuesday 6th Jan"
+            day_name = date_obj.strftime('%A')
+            day_num = date_obj.day
+            month_name = date_obj.strftime('%b')
+            # Add ordinal suffix
+            if 10 <= day_num % 100 <= 20:
+                suffix = 'th'
+            else:
+                suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day_num % 10, 'th')
+            formatted_date_display = f"{day_name} {day_num}{suffix} {month_name}"
         except:
             # If parsing fails, just use the original string
             formatted_date = start_date
+            formatted_date_display = start_date
     
     # Format distance - km for runs, meters for swims
     if activity_type == 'Swim':
@@ -167,6 +179,7 @@ def format_activity_data(activity):
         'type': activity_type,
         'name': activity.get('name', f'Untitled {activity_type}'),
         'date': formatted_date,
+        'date_display': formatted_date_display,
         'distance': distance_display,
         'distance_meters': round(distance, 0),
         'duration': format_duration(moving_time),
@@ -321,6 +334,155 @@ def refresh_activities():
         error_trace = traceback.format_exc()
         print(f"Error in refresh_activities: {e}")
         print(f"Traceback: {error_trace}")
+        return jsonify({'error': str(e)}), 500
+
+
+def calculate_statistics():
+    """Calculate statistics from cached activities."""
+    activities = get_cached_activities()
+    
+    runs = [a for a in activities if a.get('type') == 'Run']
+    swims = [a for a in activities if a.get('type') == 'Swim']
+    
+    # Total distances
+    total_run_distance = sum(a.get('distance_meters', 0) for a in runs)
+    total_swim_distance = sum(a.get('distance_meters', 0) for a in swims)
+    
+    # Calculate weeks in current year
+    now = datetime.now()
+    year_start = datetime(now.year, 1, 1)
+    days_elapsed = (now - year_start).days
+    weeks_elapsed = max(days_elapsed / 7, 1)  # At least 1 week
+    
+    # Average weekly distances
+    avg_weekly_run = total_run_distance / weeks_elapsed if weeks_elapsed > 0 else 0
+    avg_weekly_swim = total_swim_distance / weeks_elapsed if weeks_elapsed > 0 else 0
+    
+    # Calculate weekly breakdown for line charts
+    def get_week_number(date_str):
+        """Get week number from date string using ISO week calculation."""
+        try:
+            # Parse the date string (format: "2026-01-06 12:30:00")
+            date_obj = datetime.strptime(date_str[:10], '%Y-%m-%d')
+            # Get ISO week number and year
+            iso_year, iso_week, iso_weekday = date_obj.isocalendar()
+            # If the ISO year is different from our target year, adjust
+            if iso_year != now.year:
+                # Use simple week calculation based on days since year start
+                days_since_start = (date_obj - year_start).days
+                week_num = days_since_start // 7
+            else:
+                # Use ISO week number, but adjust to be 0-indexed relative to year start
+                # Get ISO week of year start
+                year_start_iso_year, year_start_iso_week, _ = year_start.isocalendar()
+                if year_start_iso_year == iso_year:
+                    week_num = iso_week - year_start_iso_week
+                else:
+                    # Year start is in previous ISO year
+                    days_since_start = (date_obj - year_start).days
+                    week_num = days_since_start // 7
+            return max(0, week_num)
+        except Exception as e:
+            print(f"Error parsing date '{date_str}': {e}")
+            # Fallback to simple calculation
+            try:
+                date_obj = datetime.strptime(date_str[:10], '%Y-%m-%d')
+                days_since_start = (date_obj - year_start).days
+                return max(0, days_since_start // 7)
+            except:
+                return 0
+    
+    # Group activities by week
+    weekly_runs = {}
+    weekly_swims = {}
+    
+    for run in runs:
+        week = get_week_number(run.get('date', ''))
+        if week not in weekly_runs:
+            weekly_runs[week] = 0
+        weekly_runs[week] += run.get('distance_meters', 0) / 1000  # Convert to km
+    
+    for swim in swims:
+        week = get_week_number(swim.get('date', ''))
+        if week not in weekly_swims:
+            weekly_swims[week] = 0
+        weekly_swims[week] += swim.get('distance_meters', 0)  # Keep in meters
+    
+    # Create weekly data arrays (last 12 weeks or all weeks if less)
+    max_week = int(weeks_elapsed)
+    weeks_to_show = min(12, max_week + 1)  # +1 because week 0 exists
+    start_week = max(0, max_week - weeks_to_show + 1)
+    
+    def get_monday_of_week(week_num):
+        """Get the Monday date for a given week number."""
+        # Find the Monday of the week containing year_start
+        year_start_weekday = year_start.weekday()  # 0 = Monday, 6 = Sunday
+        first_monday = year_start - timedelta(days=year_start_weekday)
+        # Add weeks from first Monday
+        monday = first_monday + timedelta(weeks=week_num)
+        return monday.strftime('%d %b')  # e.g., "06 Jan"
+    
+    weekly_run_data = []
+    weekly_swim_data = []
+    
+    for week in range(start_week, max_week + 1):
+        # Get Monday date for this week
+        week_label = get_monday_of_week(week)
+        weekly_run_data.append({
+            'week': week_label,
+            'distance': round(weekly_runs.get(week, 0), 2)
+        })
+        weekly_swim_data.append({
+            'week': week_label,
+            'distance': round(weekly_swims.get(week, 0), 0)
+        })
+    
+    # Number of swims and percentage (84 swims = 100%)
+    num_swims = len(swims)
+    swim_percentage = min((num_swims / 84) * 100, 100) if 84 > 0 else 0
+    
+    return {
+        'total_run_distance_km': round(total_run_distance / 1000, 2),
+        'total_swim_distance_m': round(total_swim_distance, 0),
+        'avg_weekly_run_distance_km': round(avg_weekly_run / 1000, 2),
+        'avg_weekly_swim_distance_m': round(avg_weekly_swim, 0),
+        'num_swims': num_swims,
+        'swim_percentage': round(swim_percentage, 1),
+        'num_runs': len(runs),
+        'weeks_elapsed': round(weeks_elapsed, 1),
+        'weekly_run_data': weekly_run_data,
+        'weekly_swim_data': weekly_swim_data
+    }
+
+
+@app.route('/api/statistics', methods=['GET'])
+def get_statistics():
+    """Get statistics about runs and swims."""
+    try:
+        stats = calculate_statistics()
+        return jsonify(stats), 200
+    except Exception as e:
+        print(f"Error calculating statistics: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/activities/<activity_type>', methods=['GET'])
+def get_activities_by_type(activity_type):
+    """Get all activities of a specific type (Run or Swim) for table view."""
+    try:
+        activities = get_cached_activities()
+        filtered = [a for a in activities if a.get('type', '').lower() == activity_type.lower()]
+        
+        # Sort by date (newest first)
+        filtered.sort(key=lambda x: x.get('date', ''), reverse=True)
+        
+        return jsonify({
+            'activities': filtered,
+            'type': activity_type,
+            'count': len(filtered)
+        }), 200
+    except Exception as e:
+        print(f"Error getting activities by type: {e}")
         return jsonify({'error': str(e)}), 500
 
 

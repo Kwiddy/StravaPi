@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import './App.css';
 
 const API_URL = 'http://localhost:5489/api/runs';
 const REFRESH_URL = 'http://localhost:5489/api/runs/refresh';
+const STATS_URL = 'http://localhost:5489/api/statistics';
+const ACTIVITIES_BY_TYPE_URL = 'http://localhost:5489/api/activities';
 
 function App() {
   const [activities, setActivities] = useState([]);
+  const [statistics, setStatistics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedActivityType, setSelectedActivityType] = useState(null);
+  const [detailActivities, setDetailActivities] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    // Load cached activities on mount (fast, no API call)
     loadCachedActivities();
+    loadStatistics();
   }, []);
 
   const loadCachedActivities = async () => {
@@ -46,12 +53,23 @@ function App() {
     }
   };
 
+  const loadStatistics = async () => {
+    try {
+      const response = await fetch(STATS_URL);
+      if (response.ok) {
+        const data = await response.json();
+        setStatistics(data);
+      }
+    } catch (err) {
+      console.error('Error loading statistics:', err);
+    }
+  };
+
   const refreshActivities = async () => {
     try {
       setRefreshing(true);
       setError(null);
       
-      // Call refresh endpoint
       const response = await fetch(REFRESH_URL, {
         method: 'POST',
         headers: {
@@ -68,9 +86,8 @@ function App() {
       if (data.error) {
         setError(data.error);
       } else {
-        // After refresh, reload activities from cache
         await loadCachedActivities();
-        // Optionally show a success message
+        await loadStatistics();
         if (data.new_activities > 0) {
           console.log(`Added ${data.new_activities} new activities`);
         }
@@ -83,6 +100,20 @@ function App() {
     }
   };
 
+  const handleActivityClick = async (activityType) => {
+    try {
+      const response = await fetch(`${ACTIVITIES_BY_TYPE_URL}/${activityType}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDetailActivities(data.activities || []);
+        setSelectedActivityType(activityType);
+        setShowModal(true);
+      }
+    } catch (err) {
+      console.error('Error loading detail activities:', err);
+    }
+  };
+
   const formatPace = (paceMin, paceSec, activityType) => {
     if (paceMin === null || paceSec === null) return 'N/A';
     const paceStr = `${paceMin}:${paceSec.toString().padStart(2, '0')}`;
@@ -91,6 +122,12 @@ function App() {
     }
     return `${paceStr} min/km`;
   };
+
+  // Prepare chart data for weekly averages
+  const weeklyChartData = statistics ? [
+    { name: 'Runs', value: statistics.avg_weekly_run_distance_km, color: '#fc5200' },
+    { name: 'Swims', value: statistics.avg_weekly_swim_distance_m / 1000, color: '#00a8cc' }
+  ] : [];
 
   return (
     <div className="App">
@@ -128,62 +165,161 @@ function App() {
             <button onClick={loadCachedActivities}>Retry</button>
           </div>
         )}
-        
-        {!loading && !error && activities.length === 0 && (
-          <div className="no-runs">No runs or swims found for {new Date().getFullYear()}.</div>
-        )}
-        
-        {!loading && !error && activities.length > 0 && (
-          <div className="runs-container">
-            {activities.map((activity) => (
-              <div key={activity.id || activity.name} className={`run-card ${activity.type.toLowerCase()}-card`}>
-                <div className="activity-header">
-                  <h2>{activity.name}</h2>
-                  <span className={`activity-type ${activity.type.toLowerCase()}-badge`}>
-                    {activity.type}
-                  </span>
-                </div>
-                <div className="run-details">
-                  <div className="detail-row">
-                    <span className="label">Date:</span>
-                    <span className="value">{activity.date}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="label">Distance:</span>
-                    <span className="value">{activity.distance}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="label">Duration:</span>
-                    <span className="value">{activity.duration}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="label">Pace:</span>
-                    <span className="value">{formatPace(activity.pace_min, activity.pace_sec, activity.type)}</span>
-                  </div>
-                  {activity.elevation_gain_m > 0 && (
-                    <div className="detail-row">
-                      <span className="label">Elevation Gain:</span>
-                      <span className="value">{activity.elevation_gain_m} m</span>
+
+        {!loading && !error && statistics && (
+          <div className="dashboard-split">
+            <div className="dashboard-column runs-column">
+              <h2 className="column-title">Running</h2>
+              <div className="statistics-grid">
+                <div className="stat-tile" onClick={() => handleActivityClick('Run')}>
+                  <h3>Running Statistics</h3>
+                  <div className="stat-values-row">
+                    <div className="stat-value-item">
+                      <div className="stat-label-small">Total Distance</div>
+                      <div className="stat-value">{statistics.total_run_distance_km.toLocaleString()} km</div>
                     </div>
-                  )}
-                  {activity.average_heartrate && (
-                    <div className="detail-row">
-                      <span className="label">Avg Heart Rate:</span>
-                      <span className="value">{activity.average_heartrate} bpm</span>
+                    <div className="stat-value-item">
+                      <div className="stat-label-small">Avg Weekly</div>
+                      <div className="stat-value">{statistics.avg_weekly_run_distance_km.toFixed(1)} km</div>
                     </div>
-                  )}
-                  {activity.description && (
-                    <div className="detail-row description">
-                      <span className="label">Description:</span>
-                      <span className="value">{activity.description}</span>
-                    </div>
-                  )}
+                  </div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={statistics.weekly_run_data || []}>
+                      <XAxis dataKey="week" stroke="#888" fontSize={12} />
+                      <YAxis stroke="#888" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px' }}
+                        labelStyle={{ color: '#e0e0e0' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="distance" 
+                        stroke="#fc5200" 
+                        strokeWidth={3} 
+                        dot={{ fill: '#fc5200', r: 4 }} 
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-            ))}
+            </div>
+
+            <div className="dashboard-column swims-column">
+              <h2 className="column-title">Swimming</h2>
+              <div className="statistics-grid">
+                <div className="stat-tile" onClick={() => handleActivityClick('Swim')}>
+                  <h3>Swimming Statistics</h3>
+                  <div className="stat-values-row">
+                    <div className="stat-value-item">
+                      <div className="stat-label-small">Total Distance</div>
+                      <div className="stat-value">{statistics.total_swim_distance_m.toLocaleString()} m</div>
+                    </div>
+                    <div className="stat-value-item">
+                      <div className="stat-label-small">Avg Weekly</div>
+                      <div className="stat-value">{statistics.avg_weekly_swim_distance_m.toFixed(0)} m</div>
+                    </div>
+                  </div>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={(statistics.weekly_swim_data || []).map(d => ({ ...d, distance: d.distance / 1000 }))}>
+                      <XAxis dataKey="week" stroke="#888" fontSize={12} />
+                      <YAxis stroke="#888" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#2a2a2a', border: '1px solid #3a3a3a', borderRadius: '8px' }}
+                        labelStyle={{ color: '#e0e0e0' }}
+                        formatter={(value) => `${(value * 1000).toFixed(0)} m`}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="distance" 
+                        stroke="#00a8cc" 
+                        strokeWidth={3} 
+                        dot={{ fill: '#00a8cc', r: 4 }} 
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="stat-tile" onClick={() => handleActivityClick('Swim')}>
+                  <h3>Swims Completed</h3>
+                  <div className="stat-value">{statistics.num_swims} / 84</div>
+                  <div className="circular-progress">
+                    <ResponsiveContainer width="100%" height={180}>
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Completed', value: statistics.swim_percentage },
+                            { name: 'Remaining', value: 100 - statistics.swim_percentage }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={70}
+                          startAngle={90}
+                          endAngle={-270}
+                          dataKey="value"
+                        >
+                          <Cell fill="#00a8cc" />
+                          <Cell fill="#2a2a2a" />
+                        </Pie>
+                        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="progress-text">
+                          {statistics.swim_percentage.toFixed(0)}%
+                        </text>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
+        
+        {!loading && !error && !statistics && activities.length === 0 && (
+          <div className="no-runs">No runs or swims found for {new Date().getFullYear()}. Click refresh to load data.</div>
+        )}
       </main>
+
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>All {selectedActivityType}s - {new Date().getFullYear()}</h2>
+              <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <table className="activities-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Distance</th>
+                    <th>Duration</th>
+                    <th>Pace</th>
+                    {selectedActivityType === 'Run' && <th>Elevation</th>}
+                    <th>Heart Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detailActivities.map((activity) => (
+                    <tr key={activity.id || activity.name}>
+                      <td>{activity.date_display || activity.date}</td>
+                      <td>{activity.name}</td>
+                      <td>{activity.distance}</td>
+                      <td>{activity.duration}</td>
+                      <td>{formatPace(activity.pace_min, activity.pace_sec, activity.type)}</td>
+                      {selectedActivityType === 'Run' && (
+                        <td>{activity.elevation_gain_m > 0 ? `${activity.elevation_gain_m} m` : '-'}</td>
+                      )}
+                      <td>{activity.average_heartrate ? `${activity.average_heartrate} bpm` : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

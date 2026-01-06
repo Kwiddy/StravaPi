@@ -115,6 +115,113 @@ body {
   width: 100%;
 }
 
+.section-title {
+  color: #e0e0e0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 40px 0 20px 0;
+}
+
+.dashboard-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.dashboard-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.column-title {
+  color: #e0e0e0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #2a2a2a;
+}
+
+.runs-column .column-title {
+  border-bottom-color: #fc5200;
+}
+
+.swims-column .column-title {
+  border-bottom-color: #00a8cc;
+}
+
+.statistics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stat-tile {
+  background: #1a1a1a;
+  border-radius: 16px;
+  padding: 30px;
+  border: 1px solid #2a2a2a;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  border-color: #3a3a3a;
+}
+
+.stat-tile h3 {
+  margin: 0 0 20px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-values-row {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.stat-value-item {
+  flex: 1;
+}
+
+.stat-label-small {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #e0e0e0;
+}
+
+.circular-progress {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-text {
+  fill: #e0e0e0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
 .loading, .error, .no-runs {
   text-align: center;
   padding: 60px 20px;
@@ -165,6 +272,7 @@ body {
   transition: transform 0.2s, box-shadow 0.2s;
   border-top: 4px solid #fc5200;
   border: 1px solid #2a2a2a;
+  cursor: pointer;
 }
 
 .run-card:hover {
@@ -181,6 +289,7 @@ body {
   transition: transform 0.2s, box-shadow 0.2s;
   border-top: 4px solid #00a8cc;
   border: 1px solid #2a2a2a;
+  cursor: pointer;
 }
 
 .swim-card:hover {
@@ -326,5 +435,158 @@ body {
   
   .label {
     min-width: auto;
+  }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #1a1a1a;
+  border-radius: 12px;
+  border: 1px solid #2a2a2a;
+  max-width: 1200px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 1.5rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #2a2a2a;
+  color: #e0e0e0;
+}
+
+.modal-body {
+  padding: 20px 30px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.activities-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #e0e0e0;
+}
+
+.activities-table thead {
+  background: #2a2a2a;
+  position: sticky;
+  top: 0;
+}
+
+.activities-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #b0b0b0;
+  border-bottom: 2px solid #3a3a3a;
+}
+
+.activities-table td {
+  padding: 12px;
+  border-bottom: 1px solid #2a2a2a;
+  font-size: 0.9rem;
+}
+
+.activities-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.activities-table tbody tr:hover {
+  background-color: #2a2a2a;
+}
+
+.activities-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-split {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-split {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  
+  .statistics-grid {
+    gap: 15px;
+  }
+  
+  .stat-tile {
+    min-height: 300px;
+    padding: 20px;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+  }
+  
+  .modal-content {
+    max-height: 95vh;
+  }
+  
+  .modal-body {
+    padding: 15px;
+  }
+  
+  .activities-table {
+    font-size: 0.8rem;
+  }
+  
+  .activities-table th,
+  .activities-table td {
+    padding: 8px;
   }
 }
