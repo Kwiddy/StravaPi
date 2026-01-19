@@ -344,41 +344,33 @@ def calculate_statistics():
     now = datetime.now()
     year_start = datetime(now.year, 1, 1)
     days_elapsed = (now - year_start).days
-    weeks_elapsed = max(days_elapsed / 7, 1)  # At least 1 week
+    weeks_elapsed = max(days_elapsed / 7, 1)  # At least 1 week (for schedule calculations)
     
-    # Calculate weekly breakdown for line charts
+    # Calculate the first Monday of the year (or the Monday of the week containing Jan 1)
+    year_start_weekday = year_start.weekday()  # 0 = Monday, 6 = Sunday
+    first_monday = year_start - timedelta(days=year_start_weekday)
+    
+    # Calculate weekly breakdown for line charts using Monday-based weeks
     def get_week_number(date_str):
-        """Get week number from date string using ISO week calculation."""
+        """Get week number from date string using Monday-based weeks."""
         try:
-            # Parse the date string (format: "2026-01-06 12:30:00")
+            # Parse the date string (format: "2026-01-06 12:30:00" or "2026-01-06")
             date_obj = datetime.strptime(date_str[:10], '%Y-%m-%d')
-            # Get ISO week number and year
-            iso_year, iso_week, iso_weekday = date_obj.isocalendar()
-            # If the ISO year is different from our target year, adjust
-            if iso_year != now.year:
-                # Use simple week calculation based on days since year start
-                days_since_start = (date_obj - year_start).days
-                week_num = days_since_start // 7
-            else:
-                # Use ISO week number, but adjust to be 0-indexed relative to year start
-                # Get ISO week of year start
-                year_start_iso_year, year_start_iso_week, _ = year_start.isocalendar()
-                if year_start_iso_year == iso_year:
-                    week_num = iso_week - year_start_iso_week
-                else:
-                    # Year start is in previous ISO year
-                    days_since_start = (date_obj - year_start).days
-                    week_num = days_since_start // 7
+            # Calculate days since first Monday
+            days_since_first_monday = (date_obj - first_monday).days
+            week_num = days_since_first_monday // 7  # Integer division gives week number
             return max(0, week_num)
         except Exception as e:
             print(f"Error parsing date '{date_str}': {e}")
-            # Fallback to simple calculation
-            try:
-                date_obj = datetime.strptime(date_str[:10], '%Y-%m-%d')
-                days_since_start = (date_obj - year_start).days
-                return max(0, days_since_start // 7)
-            except:
-                return 0
+            return 0
+    
+    def get_monday_of_week(week_num):
+        """Get the Monday date for a given week number."""
+        monday = first_monday + timedelta(weeks=week_num)
+        return monday.strftime('%d %b')  # e.g., "06 Jan"
+    
+    # Calculate current week number using the same logic
+    current_week = get_week_number(now.strftime('%Y-%m-%d'))
     
     # Group activities by week
     weekly_runs = {}
@@ -396,29 +388,21 @@ def calculate_statistics():
             weekly_swims[week] = 0
         weekly_swims[week] += swim.get('distance_meters', 0)  # Keep in meters
     
-    # Calculate average weekly distances based on all weeks elapsed in the year
-    # This gives a true weekly average over the entire year so far
-    avg_weekly_run = (total_run_distance / 1000) / weeks_elapsed if weeks_elapsed > 0 else 0
-    avg_weekly_swim = total_swim_distance / weeks_elapsed if weeks_elapsed > 0 else 0
+    # Calculate average weekly distances based on actual number of weeks (current_week + 1)
+    # This includes the current week (0-indexed, so week 0, 1, 2 = 3 weeks)
+    num_weeks = current_week + 1
+    avg_weekly_run = (total_run_distance / 1000) / num_weeks if num_weeks > 0 else 0
+    avg_weekly_swim = total_swim_distance / num_weeks if num_weeks > 0 else 0
     
-    # Create weekly data arrays (last 12 weeks or all weeks if less)
-    max_week = int(weeks_elapsed)
-    weeks_to_show = min(12, max_week + 1)  # +1 because week 0 exists
-    start_week = max(0, max_week - weeks_to_show + 1)
-    
-    def get_monday_of_week(week_num):
-        """Get the Monday date for a given week number."""
-        # Find the Monday of the week containing year_start
-        year_start_weekday = year_start.weekday()  # 0 = Monday, 6 = Sunday
-        first_monday = year_start - timedelta(days=year_start_weekday)
-        # Add weeks from first Monday
-        monday = first_monday + timedelta(weeks=week_num)
-        return monday.strftime('%d %b')  # e.g., "06 Jan"
+    # Create weekly data arrays (last 12 weeks or all weeks if less, including current week)
+    weeks_to_show = min(12, num_weeks)  # Number of weeks to display
+    start_week = max(0, current_week - weeks_to_show + 1)  # Start from this week number
     
     weekly_run_data = []
     weekly_swim_data = []
     
-    for week in range(start_week, max_week + 1):
+    # Include all weeks from start_week to current_week (inclusive)
+    for week in range(start_week, current_week + 1):
         # Get Monday date for this week
         week_label = get_monday_of_week(week)
         weekly_run_data.append({
