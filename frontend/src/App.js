@@ -326,6 +326,24 @@ function App() {
                     </ResponsiveContainer>
                   </div>
                 </div>
+
+                <div className="stat-tile stat-tile-half" onClick={() => handleActivityClick('Ride')}>
+                  <h3>Cycling Statistics</h3>
+                  <div className="cycling-stats">
+                    <div className="cycling-stat-item">
+                      <div className="cycling-label">Total Distance</div>
+                      <div className="cycling-value">{statistics.total_ride_distance_km?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} km</div>
+                    </div>
+                    <div className="cycling-stat-item">
+                      <div className="cycling-label">Rides Completed</div>
+                      <div className="cycling-value">{statistics.num_rides || 0}</div>
+                    </div>
+                    <div className="cycling-stat-item">
+                      <div className="cycling-label">Furthest Ride</div>
+                      <div className="cycling-value">{statistics.furthest_ride_distance_km?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} km</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -340,7 +358,7 @@ function App() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>All {selectedActivityType}s - {new Date().getFullYear()}</h2>
+              <h2>All {selectedActivityType === 'Ride' ? 'Cycles' : selectedActivityType + 's'} - {new Date().getFullYear()}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
             </div>
             <div className="modal-body">
@@ -364,7 +382,7 @@ function App() {
                       <td>{activity.distance}</td>
                       <td>{activity.duration}</td>
                       <td>{formatPace(activity.pace_min, activity.pace_sec, activity.type)}</td>
-                      {selectedActivityType === 'Run' && (
+                      {(selectedActivityType === 'Run' || selectedActivityType === 'Ride') && (
                         <td>{activity.elevation_gain_m > 0 ? `${activity.elevation_gain_m} m` : '-'}</td>
                       )}
                       <td>{activity.average_heartrate ? `${activity.average_heartrate} bpm` : '-'}</td>

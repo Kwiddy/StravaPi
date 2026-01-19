@@ -295,6 +295,38 @@ body {
   color: #fc5200;
 }
 
+.cycling-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex: 1;
+  justify-content: center;
+}
+
+.cycling-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.cycling-stat-item:last-child {
+  border-bottom: none;
+}
+
+.cycling-label {
+  font-size: 0.9rem;
+  color: #888;
+  font-weight: 500;
+}
+
+.cycling-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #e0e0e0;
+}
+
 .circular-progress {
   position: relative;
   flex: 1;

@@ -97,8 +97,8 @@ def save_activities(data):
 
 
 def filter_runs_and_swims(activities):
-    """Filter activities to only include runs and swims."""
-    return [activity for activity in activities if activity.get('type') in ['Run', 'Swim']]
+    """Filter activities to only include runs, swims, and rides."""
+    return [activity for activity in activities if activity.get('type') in ['Run', 'Swim', 'Ride']]
 
 
 def filter_by_current_year(activities):
@@ -119,7 +119,7 @@ def filter_by_current_year(activities):
 
 
 def format_activity_data(activity):
-    """Format activity data (run or swim) for JSON response."""
+    """Format activity data (run, swim, or ride) for JSON response."""
     if not activity:
         raise ValueError("Activity is None or empty")
     
@@ -127,12 +127,12 @@ def format_activity_data(activity):
     distance = activity.get('distance', 0) or 0
     moving_time = activity.get('moving_time', 0) or 0
     
-    # Calculate pace (for runs) or pace per 100m (for swims)
+    # Calculate pace (for runs and rides) or pace per 100m (for swims)
     pace_min = None
     pace_sec = None
     if distance > 0 and moving_time > 0:
-        if activity_type == 'Run':
-            # Pace per km for runs
+        if activity_type == 'Run' or activity_type == 'Ride':
+            # Pace per km for runs and rides
             pace_seconds_per_km = moving_time / (distance / 1000)
             pace_min = int(pace_seconds_per_km // 60)
             pace_sec = int(pace_seconds_per_km % 60)
@@ -160,7 +160,7 @@ def format_activity_data(activity):
             formatted_date = start_date
             formatted_date_display = start_date
     
-    # Format distance - km for runs, meters for swims
+    # Format distance - km for runs and rides, meters for swims
     if activity_type == 'Swim':
         distance_display = f"{round(distance, 0)} m"
     else:
@@ -267,7 +267,7 @@ def refresh_activities():
             if not isinstance(activities, list) or len(activities) == 0:
                 break
             
-            # Filter for runs and swims
+            # Filter for runs, swims, and rides
             runs_and_swims = filter_runs_and_swims(activities)
             
             # Filter by current year
@@ -335,10 +335,15 @@ def calculate_statistics():
     
     runs = [a for a in activities if a.get('type') == 'Run']
     swims = [a for a in activities if a.get('type') == 'Swim']
+    rides = [a for a in activities if a.get('type') == 'Ride']
     
     # Total distances
     total_run_distance = sum(a.get('distance_meters', 0) for a in runs)
     total_swim_distance = sum(a.get('distance_meters', 0) for a in swims)
+    total_ride_distance = sum(a.get('distance_meters', 0) for a in rides)
+    
+    # Furthest ride
+    furthest_ride_distance = max([a.get('distance_meters', 0) for a in rides], default=0)
     
     # Calculate weeks in current year
     now = datetime.now()
@@ -459,7 +464,10 @@ def calculate_statistics():
         'distance_schedule_status': distance_schedule_status,
         'half_marathons': half_marathons,
         'full_marathons': full_marathons,
-        'ultra_marathons': ultra_marathons
+        'ultra_marathons': ultra_marathons,
+        'total_ride_distance_km': round(total_ride_distance / 1000, 2),
+        'num_rides': len(rides),
+        'furthest_ride_distance_km': round(furthest_ride_distance / 1000, 2)
     }
 
 
@@ -476,7 +484,7 @@ def get_statistics():
 
 @app.route('/api/activities/<activity_type>', methods=['GET'])
 def get_activities_by_type(activity_type):
-    """Get all activities of a specific type (Run or Swim) for table view."""
+    """Get all activities of a specific type (Run, Swim, or Ride) for table view."""
     try:
         activities = get_cached_activities()
         filtered = [a for a in activities if a.get('type', '').lower() == activity_type.lower()]
