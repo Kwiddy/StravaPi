@@ -327,20 +327,20 @@ function App() {
                   </div>
                 </div>
 
-                <div className="stat-tile stat-tile-half" onClick={() => handleActivityClick('Ride')}>
-                  <h3>Cycling Statistics</h3>
+                <div className="stat-tile stat-tile-half">
+                  <h3>Yearly Statistics</h3>
                   <div className="cycling-stats">
                     <div className="cycling-stat-item">
-                      <div className="cycling-label">Total Distance</div>
-                      <div className="cycling-value">{statistics.total_ride_distance_km?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} km</div>
+                      <div className="cycling-label">Active Days</div>
+                      <div className="cycling-value">{statistics.activity_days_percentage?.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) || 0}%</div>
                     </div>
                     <div className="cycling-stat-item">
-                      <div className="cycling-label">Rides Completed</div>
-                      <div className="cycling-value">{statistics.num_rides || 0}</div>
+                      <div className="cycling-label">Furthest Run</div>
+                      <div className="cycling-value">{statistics.furthest_run_distance_km?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0} km</div>
                     </div>
                     <div className="cycling-stat-item">
-                      <div className="cycling-label">Furthest Ride</div>
-                      <div className="cycling-value">{statistics.furthest_ride_distance_km?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} km</div>
+                      <div className="cycling-label">Furthest Swim</div>
+                      <div className="cycling-value">{statistics.furthest_swim_distance_m?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) || 0} m</div>
                     </div>
                   </div>
                 </div>

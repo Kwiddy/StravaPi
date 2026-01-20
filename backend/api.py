@@ -335,21 +335,35 @@ def calculate_statistics():
     
     runs = [a for a in activities if a.get('type') == 'Run']
     swims = [a for a in activities if a.get('type') == 'Swim']
-    rides = [a for a in activities if a.get('type') == 'Ride']
     
     # Total distances
     total_run_distance = sum(a.get('distance_meters', 0) for a in runs)
     total_swim_distance = sum(a.get('distance_meters', 0) for a in swims)
-    total_ride_distance = sum(a.get('distance_meters', 0) for a in rides)
     
-    # Furthest ride
-    furthest_ride_distance = max([a.get('distance_meters', 0) for a in rides], default=0)
+    # Furthest run and swim
+    furthest_run_distance = max([a.get('distance_meters', 0) for a in runs], default=0)
+    furthest_swim_distance = max([a.get('distance_meters', 0) for a in swims], default=0)
     
-    # Calculate weeks in current year
+    # Calculate percentage of days with activity
     now = datetime.now()
     year_start = datetime(now.year, 1, 1)
-    days_elapsed = (now - year_start).days
-    weeks_elapsed = max(days_elapsed / 7, 1)  # At least 1 week (for schedule calculations)
+    days_elapsed = (now - year_start).days + 1  # +1 to include today
+    days_with_activity = set()
+    
+    for activity in activities:
+        date_str = activity.get('date', '')
+        if date_str:
+            try:
+                date_obj = datetime.strptime(date_str[:10], '%Y-%m-%d')
+                days_with_activity.add(date_obj.strftime('%Y-%m-%d'))
+            except:
+                pass
+    
+    activity_days_percentage = (len(days_with_activity) / days_elapsed * 100) if days_elapsed > 0 else 0
+    
+    # Calculate weeks in current year (reuse now and year_start from above)
+    days_elapsed_for_weeks = (now - year_start).days
+    weeks_elapsed = max(days_elapsed_for_weeks / 7, 1)  # At least 1 week (for schedule calculations)
     
     # Calculate the first Monday of the year (or the Monday of the week containing Jan 1)
     year_start_weekday = year_start.weekday()  # 0 = Monday, 6 = Sunday
@@ -465,9 +479,9 @@ def calculate_statistics():
         'half_marathons': half_marathons,
         'full_marathons': full_marathons,
         'ultra_marathons': ultra_marathons,
-        'total_ride_distance_km': round(total_ride_distance / 1000, 2),
-        'num_rides': len(rides),
-        'furthest_ride_distance_km': round(furthest_ride_distance / 1000, 2)
+        'activity_days_percentage': round(activity_days_percentage, 1),
+        'furthest_run_distance_km': round(furthest_run_distance / 1000, 2),
+        'furthest_swim_distance_m': round(furthest_swim_distance, 0)
     }
 
 
