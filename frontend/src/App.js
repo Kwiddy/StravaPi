@@ -342,6 +342,10 @@ function App() {
                       <div className="cycling-label">Furthest Swim</div>
                       <div className="cycling-value">{statistics.furthest_swim_distance_m?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) || 0} m</div>
                     </div>
+                    <div className="cycling-stat-item">
+                      <div className="cycling-label">Total Ski Distance</div>
+                      <div className="cycling-value">{statistics.total_ski_distance_km?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0} km</div>
+                    </div>
                   </div>
                 </div>
               </div>

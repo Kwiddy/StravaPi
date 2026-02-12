@@ -97,8 +97,8 @@ def save_activities(data):
 
 
 def filter_runs_and_swims(activities):
-    """Filter activities to only include runs, swims, and rides."""
-    return [activity for activity in activities if activity.get('type') in ['Run', 'Swim', 'Ride']]
+    """Filter activities to only include runs, swims, rides, and ski activities."""
+    return [activity for activity in activities if activity.get('type') in ['Run', 'Swim', 'Ride', 'AlpineSki', 'BackcountrySki', 'NordicSki']]
 
 
 def filter_by_current_year(activities):
@@ -166,7 +166,7 @@ def format_activity_data(activity):
     else:
         distance_display = f"{round(format_distance(distance), 2)} km"
     
-    return {
+    result = {
         'id': str(activity.get('id', '')),
         'type': activity_type,
         'name': activity.get('name', f'Untitled {activity_type}'),
@@ -181,6 +181,14 @@ def format_activity_data(activity):
         'average_heartrate': round(activity.get('average_heartrate', 0)) if activity.get('average_heartrate') else None,
         'description': activity.get('description', '')
     }
+    
+    # Preserve 'runs' field for ski activities
+    if activity_type in ['AlpineSki', 'BackcountrySki', 'NordicSki']:
+        runs = activity.get('runs')
+        if runs is not None:
+            result['runs'] = runs
+    
+    return result
 
 
 def get_cached_activities():
@@ -251,6 +259,17 @@ def refresh_activities():
         # Load existing activities
         cache_data = load_activities()
         existing_activities = cache_data.get('activities', {})
+        
+        # Remove all existing ski activities so they'll be re-fetched with full details (including 'runs' field)
+        ski_types = ['AlpineSki', 'BackcountrySki', 'NordicSki']
+        activities_to_remove = []
+        for activity_id, activity in existing_activities.items():
+            if activity.get('type') in ski_types:
+                activities_to_remove.append(activity_id)
+        
+        for activity_id in activities_to_remove:
+            del existing_activities[activity_id]
+        
         existing_ids = set(existing_activities.keys())
         
         # Fetch activities in small batches, stopping when we find duplicates
@@ -335,10 +354,12 @@ def calculate_statistics():
     
     runs = [a for a in activities if a.get('type') == 'Run']
     swims = [a for a in activities if a.get('type') == 'Swim']
+    skis = [a for a in activities if a.get('type') in ['AlpineSki', 'BackcountrySki', 'NordicSki']]
     
     # Total distances
     total_run_distance = sum(a.get('distance_meters', 0) for a in runs)
     total_swim_distance = sum(a.get('distance_meters', 0) for a in swims)
+    total_ski_distance = sum(a.get('distance_meters', 0) for a in skis)
     
     # Furthest run and swim
     furthest_run_distance = max([a.get('distance_meters', 0) for a in runs], default=0)
@@ -481,7 +502,8 @@ def calculate_statistics():
         'ultra_marathons': ultra_marathons,
         'activity_days_percentage': round(activity_days_percentage, 1),
         'furthest_run_distance_km': round(furthest_run_distance / 1000, 2),
-        'furthest_swim_distance_m': round(furthest_swim_distance, 0)
+        'furthest_swim_distance_m': round(furthest_swim_distance, 0),
+        'total_ski_distance_km': round(total_ski_distance / 1000, 2)
     }
 
 
