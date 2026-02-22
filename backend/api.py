@@ -8,11 +8,14 @@ import os
 import json
 import tempfile
 import shutil
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from strava_runs import get_access_token, get_activities as fetch_strava_activities, format_duration, format_distance
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
+
+# Path to built frontend (for production/kiosk mode)
+FRONTEND_BUILD = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'build')
 
 # Path to activities cache file
 ACTIVITIES_FILE = os.path.join(os.path.dirname(__file__), 'activities.json')
@@ -542,6 +545,18 @@ def get_activities_by_type(activity_type):
 def health_check():
     """Health check endpoint."""
     return jsonify({'status': 'ok'}), 200
+
+
+# Serve built frontend (for production/kiosk mode)
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    """Serve React build. API routes are mounted above, so only unmatched paths reach here."""
+    if os.path.exists(FRONTEND_BUILD):
+        if path and os.path.exists(os.path.join(FRONTEND_BUILD, path)):
+            return send_from_directory(FRONTEND_BUILD, path)
+        return send_from_directory(FRONTEND_BUILD, 'index.html')
+    return jsonify({'error': 'Frontend not built. Run: cd frontend && npm run build'}), 503
 
 
 if __name__ == '__main__':

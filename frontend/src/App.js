@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import './App.css';
 
-const API_URL = 'http://localhost:5489/api/runs';
-const REFRESH_URL = 'http://localhost:5489/api/runs/refresh';
-const STATS_URL = 'http://localhost:5489/api/statistics';
-const ACTIVITIES_BY_TYPE_URL = 'http://localhost:5489/api/activities';
+// Use relative URLs so it works when served from same origin (production/kiosk)
+const API_URL = '/api/runs';
+const REFRESH_URL = '/api/runs/refresh';
+const STATS_URL = '/api/statistics';
+const ACTIVITIES_BY_TYPE_URL = '/api/activities';
 
 function App() {
   const [activities, setActivities] = useState([]);
@@ -47,7 +48,7 @@ function App() {
       }
     } catch (err) {
       console.error('Error loading cached activities:', err);
-      setError(`Failed to connect to backend: ${err.message}. Make sure the API server is running on port 5489.`);
+      setError(`Failed to connect to backend: ${err.message}. Make sure the API server is running.`);
     } finally {
       setLoading(false);
     }

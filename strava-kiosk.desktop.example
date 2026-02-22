@@ -1,0 +1,17 @@
+# Autostart Chromium in kiosk mode for Strava Dashboard.
+#
+# Setup (run these on your Raspberry Pi):
+#   1. Create autostart dir if needed: mkdir -p ~/.config/autostart
+#   2. Copy: cp strava-kiosk.desktop.example ~/.config/autostart/strava-kiosk.desktop
+#   3. Edit paths: nano ~/.config/autostart/strava-kiosk.desktop
+#
+# The dashboard must be running (systemd service) before this starts.
+# To delay until the API is ready, we use a small sleep.
+#
+# For Raspberry Pi OS with desktop: this runs when you log in graphically.
+
+[Desktop Entry]
+Type=Application
+Name=Strava Dashboard Kiosk
+Exec=sh -c "sleep 10 && chromium-browser --kiosk --noerrdialogs --disable-infobars --disable-session-crashed-bubble --disable-restore-session-state --check-for-update-interval=31536000 http://localhost:5489"
+X-GNOME-Autostart-enabled=true

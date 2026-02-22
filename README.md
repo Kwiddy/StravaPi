@@ -100,3 +100,48 @@ The application uses a local caching system optimized for Raspberry Pi:
 
 The cache file is automatically created on first refresh and updated whenever you click the refresh button.
 
+## Raspberry Pi Kiosk Mode
+
+To run the dashboard automatically on startup in full-screen kiosk mode:
+
+### 1. Build the frontend once
+
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+```
+
+### 2. Install the systemd service
+
+```bash
+# Copy and edit the service file (update paths if your project isn't at /home/pi/strava-dashboard)
+sudo cp strava-dashboard.service.example /etc/systemd/system/strava-dashboard.service
+sudo nano /etc/systemd/system/strava-dashboard.service  # fix User/WorkingDirectory if needed
+
+# Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable strava-dashboard
+sudo systemctl start strava-dashboard
+```
+
+### 3. Enable kiosk autostart (when using Raspberry Pi desktop)
+
+```bash
+mkdir -p ~/.config/autostart
+cp strava-kiosk.desktop.example ~/.config/autostart/strava-kiosk.desktop
+```
+
+On next login (or reboot), Chromium will open in kiosk mode at `http://localhost:5489`. If `chromium-browser` is not found, edit the desktop file and change it to `chromium`.
+
+### 4. Pull updates easily
+
+Run this from the project directory whenever you want to pull and deploy changes:
+
+```bash
+./update-and-restart.sh
+```
+
+This script pulls from git, rebuilds the frontend, and restarts the service.
+

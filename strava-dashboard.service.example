@@ -1,0 +1,25 @@
+# Copy this file to /etc/systemd/system/strava-dashboard.service
+# Update paths and User to match your Raspberry Pi setup.
+#
+# Setup:
+#   sudo cp strava-dashboard.service.example /etc/systemd/system/strava-dashboard.service
+#   sudo nano /etc/systemd/system/strava-dashboard.service  # fix paths if needed
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable strava-dashboard
+#   sudo systemctl start strava-dashboard
+
+[Unit]
+Description=Strava Dashboard (API + Frontend)
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/strava-dashboard/backend
+ExecStart=/usr/bin/python3 api.py
+Restart=on-failure
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
