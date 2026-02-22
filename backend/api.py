@@ -104,17 +104,24 @@ def filter_runs_and_swims(activities):
     return [activity for activity in activities if activity.get('type') in ['Run', 'Swim', 'Ride', 'AlpineSki', 'BackcountrySki', 'NordicSki']]
 
 
+def get_year_start_date():
+    """Return the Monday of the week containing Jan 1 (ISO week start).
+    This ensures the first week of the year includes activities from late Dec of the previous year.
+    e.g. For 2026, Jan 1 is Thursday, so week 1 runs Dec 30 2025 - Jan 5 2026."""
+    year_start = datetime(datetime.now().year, 1, 1)
+    first_monday = year_start - timedelta(days=year_start.weekday())
+    return first_monday.strftime('%Y-%m-%d')
+
+
 def filter_by_current_year(activities):
-    """Filter activities to only include those from the start of the current year."""
-    current_year = datetime.now().year
-    year_start_str = f"{current_year}-01-01"
+    """Filter activities to include those from the first week of the current year onward.
+    Uses Monday-based weeks so e.g. Dec 30-31 2025 are included for 2026 (week 1)."""
+    year_start_str = get_year_start_date()
     
     filtered = []
     for activity in activities:
         start_date = activity.get('start_date_local', '') or activity.get('start_date', '')
         if start_date:
-            # Simple string comparison - Strava dates are ISO format
-            # Compare just the date part (first 10 characters: YYYY-MM-DD)
             if start_date[:10] >= year_start_str:
                 filtered.append(activity)
     
@@ -199,9 +206,8 @@ def get_cached_activities():
     cache_data = load_activities()
     activities_dict = cache_data.get('activities', {})
     
-    # Filter by current year
-    current_year = datetime.now().year
-    year_start_str = f"{current_year}-01-01"
+    # Filter from first week of year (Monday-based, includes late Dec of prev year)
+    year_start_str = get_year_start_date()
     
     current_year_activities = []
     for activity_id, activity in activities_dict.items():
