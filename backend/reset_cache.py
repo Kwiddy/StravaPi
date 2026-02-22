@@ -19,7 +19,9 @@ sys.path.insert(0, SCRIPT_DIR)
 from dotenv import load_dotenv
 load_dotenv()
 
-from strava_runs import get_access_token, get_activities as fetch_activities
+import requests
+
+from strava_runs import get_access_token
 from api import (
     filter_runs_and_swims,
     filter_by_current_year,
@@ -34,6 +36,19 @@ def get_year_start_timestamp():
     year_start = datetime(datetime.now().year, 1, 1)
     first_monday = year_start - timedelta(days=year_start.weekday())
     return int(first_monday.timestamp())
+
+
+def fetch_activities(access_token, per_page=200, after=None, page=1):
+    """Fetch activities from Strava API with optional after (Unix timestamp) and page."""
+    url = "https://www.strava.com/api/v3/athlete/activities"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    params = {"per_page": per_page, "page": page}
+    if after is not None:
+        params["after"] = int(after)
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        return response.json()
+    return None
 
 
 def main():
