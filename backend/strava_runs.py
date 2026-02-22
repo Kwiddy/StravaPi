@@ -80,11 +80,15 @@ def get_access_token():
     return token
 
 
-def get_activities(access_token, per_page=30):
-    """Fetch activities from Strava API."""
+def get_activities(access_token, per_page=30, after=None, page=None):
+    """Fetch activities from Strava API. Optionally filter by after (Unix timestamp) and page."""
     url = "https://www.strava.com/api/v3/athlete/activities"
     headers = {"Authorization": f"Bearer {access_token}"}
     params = {"per_page": per_page}
+    if after is not None:
+        params["after"] = int(after)
+    if page is not None:
+        params["page"] = page
     
     response = requests.get(url, headers=headers, params=params)
     

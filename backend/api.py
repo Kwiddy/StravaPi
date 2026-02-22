@@ -288,7 +288,7 @@ def refresh_activities():
         found_duplicate = False
         
         while not found_duplicate and page <= 10:  # Limit to 10 pages (200 activities max)
-            activities = fetch_strava_activities(access_token, per_page=per_page)
+            activities = fetch_strava_activities(access_token, per_page=per_page, page=page)
             if activities is None:
                 break
             
