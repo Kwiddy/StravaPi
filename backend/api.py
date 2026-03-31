@@ -281,13 +281,14 @@ def refresh_activities():
         
         existing_ids = set(existing_activities.keys())
         
-        # Fetch activities in small batches, stopping when we find duplicates
+        # Fetch activities in small batches.
+        # Do not stop on first duplicate: we remove cached ski activities above and need
+        # to keep paging so older ski entries can be re-fetched.
         per_page = 20
         page = 1
         new_count = 0
-        found_duplicate = False
         
-        while not found_duplicate and page <= 10:  # Limit to 10 pages (200 activities max)
+        while page <= 10:  # Limit to 10 pages (200 activities max)
             activities = fetch_strava_activities(access_token, per_page=per_page, page=page)
             if activities is None:
                 break
@@ -301,17 +302,17 @@ def refresh_activities():
             # Filter by current year
             current_year_activities = filter_by_current_year(runs_and_swims)
             
-            # Check each activity - stop if we find one we already have
+            # Merge in any activities that are not already cached.
             for activity in current_year_activities:
                 activity_id = str(activity.get('id', ''))
                 if activity_id in existing_ids:
-                    found_duplicate = True
-                    break
+                    continue
                 
                 # Add new activity
                 try:
                     formatted = format_activity_data(activity)
                     existing_activities[activity_id] = formatted
+                    existing_ids.add(activity_id)
                     new_count += 1
                 except Exception as e:
                     print(f"Error formatting activity {activity_id}: {e}")
